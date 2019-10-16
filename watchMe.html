@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div class="slider">
+        <div class="buttons">
+            <label for="slide-1"></label>
+            <label for="slide-2"></label>
+            <label for="slide-3"></label>
+            <label for="slide-4"></label>
+            <label for="slide-5"></label>
+        </div>
+        <input type="radio" checked id="slide-1" name="slides">
+        <div class="slide one">Slide1</div>
+        <input type="radio" id="slide-2" name="slides">
+        <div class="slide two">Slide2</div>
+        <input type="radio" id="slide-3" name="slides">
+        <div class="slide three">Slide3</div>
+        <input type="radio" id="slide-4" name="slides">
+        <div class="slide four">Slide4</div>
+        <input type="radio" id="slide-5" name="slides">
+        <div class="slide five">Slide5</div>
+    </div>
+    <section class="app">
+    </section>
+    <style>
+        section {
+            margin: 0 auto;
+            width: 900px;
+            display: grid;
+            grid-gap: 10px;
+            grid-template: "header header section"
+                           "body body section"
+                           "footer footer section";
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        
+        .app div {
+            background: #ddd;
+            color: #333;
+            font-family: helvetica;
+            font-size: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .app .subItem {
+            background: #eee;
+            margin: 10px;
+        }
+
+        .app span {
+            background: #aea;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .buttons {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 10px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .buttons label {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #ddd;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            left: 100%;
+            transition: left 0.5s;
+            z-index: 1;
+            position: absolute;
+            top: 0;
+        }
+        .one {
+            background: green;
+        }
+        .two {
+            background: yellow;
+        }
+        .three {
+            background: red;
+        }
+        .four {
+            background: blue;
+        }
+        .five {
+            background: purple;
+        }
+        .slider input[id^="slide"]:checked + .slide {
+            left: 0;
+            z-index: 5;
+            
+        }
+    </style>
+    <script>
+
+class Pokemon {
+    constructor(){
+        this.application = document.querySelector('.app');
+        this.data = [];
+    }
+
+    addEvents(){
+        this.application.addEventListener('click', this.menuEvents.bind(this));
+    }
+
+    sortData(data) {
+        return (data || this.data).slice().sort((a, b)=>{
+            return ('' + a.name.english).localeCompare(b.name.english);
+        });
+    }
+
+    sortAsc(data) {
+        let sortedList = this.sortData(data),
+            group      = this.cardsByInitial(sortedList);
+
+        this.render(group);
+    }
+
+    sortDesc(data) {
+        let sortedList = this.sortData(data).reverse(),
+            group      = this.cardsByInitial(sortedList);
+
+        this.render(group);
+    }
+
+    menuEvents(e){
+        let element = e.target,
+            id      = element.id;
+
+        e.preventDefault();
+
+        switch (id) {
+            case 'asc':
+                this.sortAsc();
+                break;
+            case 'desc':
+                this.sortDesc();
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    cardsByInitial(data){
+        return data.slice().reduce((acc, item)=>{
+            acc[item.name.english[0]] = [...acc[item.name.english[0]] || [] , item];
+
+            return acc;
+        }, {});
+    }
+
+    renderCards(data){
+        return Object.keys(data).map((a)=>{
+            return `<div>
+                        <h1>${a}</h1>
+                        ${this.renderSubItems(data[a])}
+                    </div>`
+        }).join('');
+    }
+
+    renderSubItems(data){
+        return data.length && data.map(({id, name, type, base})=>{
+            return `
+                <div>
+                    <span>${id}</span>
+                    <span>${name.english}</span>
+                    <span>${type[0]}</span>
+                    <span>${base.HP}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    init() {
+        fetch('https://raw.githubusercontent.com/fanzeyi/Pokemon-DB/master/pokedex.json')
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                this.sortAsc(data);
+                this.addEvents();
+                this.data = data;
+            })
+            .catch((e)=>console.warn(e));
+    }
+
+    render(data){
+        this.application.innerHTML = `
+            <button id=\"asc\">Asc</button>
+            <button id=\"desc\">Desc</button>
+            <div id=\"otro\"></div>
+            ${this.renderCards(data)}
+        `;
+    }
+}
+
+let PokeCards = new Pokemon();
+
+PokeCards.init();
+    </script>
+</body>
+</html>
+
+
+
